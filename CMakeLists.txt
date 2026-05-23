@@ -47,7 +47,7 @@ add_executable(csv_to_columnar
 )
 target_include_directories(csv_to_columnar PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(csv_to_columnar PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/exe"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/${CMAKE_BUILD_TYPE}/exe"
 )
 
 # ─── Бинарник 2: ngn-clickbench-run ─────────────────────────────────────────
@@ -58,5 +58,5 @@ add_executable(ngn-clickbench-run
 )
 target_include_directories(ngn-clickbench-run PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(ngn-clickbench-run PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/clickbench"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/build/${CMAKE_BUILD_TYPE}/clickbench"
 )

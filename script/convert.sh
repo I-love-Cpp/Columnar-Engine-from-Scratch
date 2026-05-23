@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ $# -lt 2 ]]; then
-  echo "Usage: script/convert.sh <input_csv> <output_columnar> [input_schema]" >&2
+  echo "Usage: script/convert.sh <input_csv> <output_columnar> [schema]" >&2
   exit 2
 fi
 
@@ -14,7 +14,11 @@ INPUT_SCHEMA="${3:-${ROOT_DIR}/hits.schema}"
 
 BUILD_TYPE="${BUILD_TYPE:-Release}"
 OUTPUT_FOLDER="${OUTPUT_FOLDER:-${ROOT_DIR}/build}"
+
+# Путь совпадает с RUNTIME_OUTPUT_DIRECTORY в CMakeLists.txt
 BIN="${OUTPUT_FOLDER}/build/${BUILD_TYPE}/exe/csv_to_columnar"
+
+echo "BIN=${BIN}"
 
 if [[ ! -x "${BIN}" ]]; then
   echo "ERROR: csv_to_columnar not found at ${BIN}" >&2
@@ -35,3 +39,4 @@ fi
 mkdir -p "$(dirname "${COLUMNAR}")"
 
 "${BIN}" --input "${INPUT_CSV}" --schema "${INPUT_SCHEMA}" --output "${COLUMNAR}"
+

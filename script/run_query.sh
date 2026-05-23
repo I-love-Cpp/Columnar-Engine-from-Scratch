@@ -17,7 +17,11 @@ QUERY_NUM_PADDED="$(printf "%02d" "${QUERY_NUM}")"
 BUILD_TYPE="${BUILD_TYPE:-Release}"
 OUTPUT_FOLDER="${OUTPUT_FOLDER:-${ROOT_DIR}/build}"
 SCHEMA="${SCHEMA:-${ROOT_DIR}/hits.schema}"
+
+# Путь совпадает с RUNTIME_OUTPUT_DIRECTORY в CMakeLists.txt
 BIN="${OUTPUT_FOLDER}/build/${BUILD_TYPE}/clickbench/ngn-clickbench-run"
+
+echo "BIN=${BIN}"
 
 if [[ ! -x "${BIN}" ]]; then
   echo "ERROR: ngn-clickbench-run not found at ${BIN}" >&2
@@ -39,14 +43,12 @@ mkdir -p "$(dirname "${OUTPUT_CSV}")"
 mkdir -p "$(dirname "${LOG_FILE}")"
 
 TEMP_OUTPUT_DIR="$(mktemp -d)"
-cleanup() {
-  rm -rf "${TEMP_OUTPUT_DIR}"
-}
+cleanup() { rm -rf "${TEMP_OUTPUT_DIR}"; }
 trap cleanup EXIT
 
 "${BIN}" \
-  --input "${COLUMNAR}" \
-  --schema "${SCHEMA}" \
+  --input    "${COLUMNAR}" \
+  --schema   "${SCHEMA}" \
   --output_dir "${TEMP_OUTPUT_DIR}" \
   --queries="${QUERY_NUM}" \
   2>&1 | tee "${LOG_FILE}"
@@ -65,5 +67,6 @@ if [[ "${#CSV_CANDIDATES[@]}" -eq 1 ]]; then
   exit 0
 fi
 
-echo "ERROR: query output CSV not found for Q${QUERY_NUM} in ${TEMP_OUTPUT_DIR}" >&2
+echo "ERROR: output CSV not found for Q${QUERY_NUM} in ${TEMP_OUTPUT_DIR}" >&2
 exit 3
+

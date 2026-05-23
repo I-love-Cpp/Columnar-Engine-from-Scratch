@@ -10,7 +10,7 @@ fi
 
 INPUT_CSV="$1"
 COLUMNAR="$2"
-INPUT_SCHEMA="${3:-${ROOT_DIR}/hits.schema}"
+INPUT_SCHEMA="${3:-${ROOT_DIR}/scheme.csv}"
 
 BUILD_TYPE="${BUILD_TYPE:-Release}"
 OUTPUT_FOLDER="${OUTPUT_FOLDER:-${ROOT_DIR}/build}"

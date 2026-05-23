@@ -16,7 +16,7 @@ QUERY_NUM_PADDED="$(printf "%02d" "${QUERY_NUM}")"
 
 BUILD_TYPE="${BUILD_TYPE:-Release}"
 OUTPUT_FOLDER="${OUTPUT_FOLDER:-${ROOT_DIR}/build}"
-SCHEMA="${SCHEMA:-${ROOT_DIR}/hits.schema}"
+SCHEMA="${SCHEMA:-${ROOT_DIR}/scheme.csv}"
 
 # Путь совпадает с RUNTIME_OUTPUT_DIRECTORY в CMakeLists.txt
 BIN="${OUTPUT_FOLDER}/build/${BUILD_TYPE}/clickbench/ngn-clickbench-run"

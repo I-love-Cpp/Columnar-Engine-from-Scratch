@@ -47,10 +47,10 @@ cleanup() { rm -rf "${TEMP_OUTPUT_DIR}"; }
 trap cleanup EXIT
 
 "${BIN}" \
-  --input    "${COLUMNAR}" \
-  --schema   "${SCHEMA}" \
+  --input      "${COLUMNAR}" \
+  --schema     "${SCHEMA}" \
   --output_dir "${TEMP_OUTPUT_DIR}" \
-  --queries="${QUERY_NUM}" \
+  --queries    "${QUERY_NUM}" \
   2>&1 | tee "${LOG_FILE}"
 
 EXPECTED_CSV="${TEMP_OUTPUT_DIR}/q${QUERY_NUM_PADDED}.csv"

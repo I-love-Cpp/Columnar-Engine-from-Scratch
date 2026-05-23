@@ -14,7 +14,10 @@ set(COMMON_SOURCES
         src/types/types_data/type_string.cpp
         src/types/types_data/type_timestamp.cpp
 
+
         src/utils/date_utils.cpp
+
+        src/utils/aggregate_utils.h  # добавлен, если используется
 
         src/structs/column.cpp
         src/structs/schema.cpp
@@ -23,6 +26,7 @@ set(COMMON_SOURCES
         src/csv_io/csv_reader.cpp
         src/csv_io/csv_writer.cpp
 
+        src/operators/iop.h
         src/operators/table_scan.cpp
         src/operators/filter.cpp
         src/operators/global_aggregate.cpp
@@ -32,6 +36,7 @@ set(COMMON_SOURCES
         src/operators/sort.cpp
         src/operators/limit.cpp
         src/operators/offset.cpp
+        src/operators/materialized_scan.h
 )
 
 # ─── Бинарник 1: csv_to_columnar ────────────────────────────────────────────
@@ -39,8 +44,6 @@ set(COMMON_SOURCES
 add_executable(csv_to_columnar
         src/tools/csv_to_columnar_main.cpp
         ${COMMON_SOURCES}
-        src/tools/csv_to_columnar_main.cpp
-        src/tools/run_queries_main.cpp
 )
 target_include_directories(csv_to_columnar PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(csv_to_columnar PROPERTIES
@@ -52,7 +55,6 @@ set_target_properties(csv_to_columnar PROPERTIES
 add_executable(ngn-clickbench-run
         src/tools/run_queries_main.cpp
         ${COMMON_SOURCES}
-        checker.h
 )
 target_include_directories(ngn-clickbench-run PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(ngn-clickbench-run PROPERTIES

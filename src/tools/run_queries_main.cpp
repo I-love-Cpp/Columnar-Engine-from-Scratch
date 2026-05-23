@@ -105,12 +105,10 @@ static void RunQuery(int queryNum,
     const int window_client_h = idx("WindowClientHeight");
 
     switch (queryNum + 1) {
-            // -----------------------------------------------------------------------
-            // 1. SELECT COUNT(*) FROM hits;
         case 1: {
                 auto start = Clock::now();
 
-                auto scan = std::make_unique<TableScan>(reader, std::vector<size_t>{0}); // любая колонка
+                auto scan = std::make_unique<TableScan>(reader, std::vector<size_t>{0});
                 std::vector<GlobalAggregate::Spec> specs;
                 specs.emplace_back(GlobalAggregate::AggOp::COUNT, nullptr);
                 auto agg = std::make_unique<GlobalAggregate>(std::move(scan), std::move(specs));
@@ -124,7 +122,6 @@ static void RunQuery(int queryNum,
                 break;
             }
 
-        // 2. SELECT COUNT(*) FROM hits WHERE AdvEngineID <> 0;
         case 2: {
             auto start = Clock::now();
 
@@ -146,7 +143,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 3. SELECT SUM(AdvEngineID), COUNT(*), AVG(ResolutionWidth) FROM hits;
         case 3: {
             auto start = Clock::now();
 
@@ -170,7 +166,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 4. SELECT AVG(UserID) FROM hits;
         case 4: {
             auto start = Clock::now();
 
@@ -188,7 +183,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 5. SELECT COUNT(DISTINCT UserID) FROM hits;
         case 5: {
             auto start = Clock::now();
 
@@ -207,7 +201,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 6. SELECT COUNT(DISTINCT SearchPhrase) FROM hits;
         case 6: {
             auto start = Clock::now();
 
@@ -226,7 +219,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 7. SELECT MIN(EventDate), MAX(EventDate) FROM hits;
         case 7: {
             auto start = Clock::now();
 
@@ -245,7 +237,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 8. SELECT AdvEngineID, COUNT(*) FROM hits WHERE AdvEngineID <> 0 GROUP BY AdvEngineID ORDER BY COUNT(*) DESC;
         case 8: {
             auto start = Clock::now();
 
@@ -260,7 +251,7 @@ static void RunQuery(int queryNum,
             agg_specs.emplace_back(GroupAggregate::AggOp::COUNT, nullptr);
             auto group = std::make_unique<GroupAggregate>(std::move(filter), std::move(keys), std::move(agg_specs));
             std::vector<Sort::SortKey> sort_keys;
-            sort_keys.push_back(Sort::SortKey{1, false}); // COUNT(*)
+            sort_keys.push_back(Sort::SortKey{1, false});
             auto sort = std::make_unique<Sort>(std::move(group), std::move(sort_keys));
             auto res = sort->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -272,7 +263,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 9. SELECT RegionID, COUNT(DISTINCT UserID) AS u FROM hits GROUP BY RegionID ORDER BY u DESC LIMIT 10;
         case 9: {
             auto start = Clock::now();
 
@@ -285,7 +275,6 @@ static void RunQuery(int queryNum,
             auto group = std::make_unique<GroupAggregate>(std::move(scan), std::move(keys), std::move(agg_specs));
             std::vector<TopK::SortKey> top_keys;
             top_keys.emplace_back(std::make_unique<ColumnRef>(1, TypesId::int64), false);
-            // агрегат COUNT_DISTINCT даст int64
             auto topk = std::make_unique<TopK>(std::move(group), std::move(top_keys), 10);
             auto res = topk->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -297,7 +286,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 10. SELECT RegionID, SUM(AdvEngineID), COUNT(*) AS c, AVG(ResolutionWidth), COUNT(DISTINCT UserID) FROM hits GROUP BY RegionID ORDER BY c DESC LIMIT 10;
         case 10: {
             auto start = Clock::now();
 
@@ -316,7 +304,7 @@ static void RunQuery(int queryNum,
                                    std::make_unique<ColumnRef>(3, colType(user_id)));
             auto group = std::make_unique<GroupAggregate>(std::move(scan), std::move(keys), std::move(agg_specs));
             std::vector<TopK::SortKey> top_keys;
-            top_keys.emplace_back(std::make_unique<ColumnRef>(2, TypesId::int64), false); // COUNT(*) — int64
+            top_keys.emplace_back(std::make_unique<ColumnRef>(2, TypesId::int64), false);
             auto topk = std::make_unique<TopK>(std::move(group), std::move(top_keys), 10);
             auto res = topk->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -328,7 +316,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 11. SELECT MobilePhoneModel, COUNT(DISTINCT UserID) AS u FROM hits WHERE MobilePhoneModel <> '' GROUP BY MobilePhoneModel ORDER BY u DESC LIMIT 10;
         case 11: {
             auto start = Clock::now();
 
@@ -356,7 +343,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 12. SELECT MobilePhone, MobilePhoneModel, COUNT(DISTINCT UserID) AS u FROM hits WHERE MobilePhoneModel <> '' GROUP BY MobilePhone, MobilePhoneModel ORDER BY u DESC LIMIT 10;
         case 12: {
             auto start = Clock::now();
 
@@ -387,7 +373,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 13. SELECT SearchPhrase, COUNT(*) AS c FROM hits WHERE SearchPhrase <> '' GROUP BY SearchPhrase ORDER BY c DESC LIMIT 10;
         case 13: {
             auto start = Clock::now();
 
@@ -414,7 +399,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 14. SELECT SearchPhrase, COUNT(DISTINCT UserID) AS u FROM hits WHERE SearchPhrase <> '' GROUP BY SearchPhrase ORDER BY u DESC LIMIT 10;
         case 14: {
             auto start = Clock::now();
 
@@ -442,7 +426,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 15. SELECT SearchEngineID, SearchPhrase, COUNT(*) AS c FROM hits WHERE SearchPhrase <> '' GROUP BY SearchEngineID, SearchPhrase ORDER BY c DESC LIMIT 10;
         case 15: {
             auto start = Clock::now();
 
@@ -471,7 +454,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 16. SELECT UserID, COUNT(*) FROM hits GROUP BY UserID ORDER BY COUNT(*) DESC LIMIT 10;
         case 16: {
             auto start = Clock::now();
 
@@ -494,7 +476,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 17. SELECT UserID, SearchPhrase, COUNT(*) FROM hits GROUP BY UserID, SearchPhrase ORDER BY COUNT(*) DESC LIMIT 10;
         case 17: {
             auto start = Clock::now();
 
@@ -518,7 +499,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 18. SELECT UserID, SearchPhrase, COUNT(*) FROM hits GROUP BY UserID, SearchPhrase LIMIT 10;
         case 18: {
             auto start = Clock::now();
 
@@ -540,7 +520,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 19. SELECT UserID, extract(minute FROM EventTime) AS m, SearchPhrase, COUNT(*) FROM hits GROUP BY UserID, m, SearchPhrase ORDER BY COUNT(*) DESC LIMIT 10;
         case 19: {
             auto start = Clock::now();
 
@@ -557,18 +536,16 @@ static void RunQuery(int queryNum,
 
             std::vector<std::unique_ptr<Expression> > keys;
             keys.push_back(std::make_unique<ColumnRef>(0, colType(user_id)));
-            keys.push_back(std::make_unique<ColumnRef>(1, TypesId::int64)); // m – результат функции int64
+            keys.push_back(std::make_unique<ColumnRef>(1, TypesId::int64));
             keys.push_back(std::make_unique<ColumnRef>(2, colType(search_phr)));
             std::vector<GroupAggregate::Spec> agg_specs;
             agg_specs.emplace_back(GroupAggregate::AggOp::COUNT, nullptr);
             auto group = std::make_unique<GroupAggregate>(std::move(proj), std::move(keys), std::move(agg_specs));
             std::vector<TopK::SortKey> top_keys;
-            // Основной ключ – COUNT(*) DESC
             top_keys.emplace_back(std::make_unique<ColumnRef>(3, TypesId::int64), false);
-            // Дополнительные ключи для стабильности
-            top_keys.emplace_back(std::make_unique<ColumnRef>(0, colType(user_id)), true); // UserID ASC
-            top_keys.emplace_back(std::make_unique<ColumnRef>(1, TypesId::int64), true); // m ASC
-            top_keys.emplace_back(std::make_unique<ColumnRef>(2, colType(search_phr)), true); // SearchPhrase ASC
+            top_keys.emplace_back(std::make_unique<ColumnRef>(0, colType(user_id)), true);
+            top_keys.emplace_back(std::make_unique<ColumnRef>(1, TypesId::int64), true);
+            top_keys.emplace_back(std::make_unique<ColumnRef>(2, colType(search_phr)), true);
             auto topk = std::make_unique<TopK>(std::move(group), std::move(top_keys), 10);
             auto res = topk->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -580,7 +557,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 20. SELECT UserID FROM hits WHERE UserID = 435090932899640449;
         case 20: {
             auto start = Clock::now();
 
@@ -604,7 +580,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 21. SELECT COUNT(*) FROM hits WHERE URL LIKE '%google%';
         case 21: {
             auto start = Clock::now();
 
@@ -624,7 +599,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 22. SELECT SearchPhrase, MIN(URL), COUNT(*) AS c FROM hits WHERE URL LIKE '%google%' AND SearchPhrase <> '' GROUP BY SearchPhrase ORDER BY c DESC LIMIT 10;
         case 22: {
             auto start = Clock::now();
 
@@ -657,7 +631,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 23. SELECT SearchPhrase, MIN(URL), MIN(Title), COUNT(*) AS c, COUNT(DISTINCT UserID) FROM hits WHERE Title LIKE '%Google%' AND URL NOT LIKE '%.google.%' AND SearchPhrase <> '' GROUP BY SearchPhrase ORDER BY c DESC LIMIT 10;
         case 23: {
             auto start = Clock::now();
 
@@ -686,7 +659,7 @@ static void RunQuery(int queryNum,
                                    std::make_unique<ColumnRef>(3, colType(user_id)));
             auto group = std::make_unique<GroupAggregate>(std::move(filter), std::move(keys), std::move(agg_specs));
             std::vector<TopK::SortKey> top_keys;
-            top_keys.emplace_back(std::make_unique<ColumnRef>(3, TypesId::int64), false); // COUNT(*)
+            top_keys.emplace_back(std::make_unique<ColumnRef>(3, TypesId::int64), false);
             auto topk = std::make_unique<TopK>(std::move(group), std::move(top_keys), 10);
             auto res = topk->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -698,7 +671,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 24. SELECT * FROM hits WHERE URL LIKE '%google%' ORDER BY EventTime LIMIT 10;
         case 24: {
             auto start = Clock::now();
 
@@ -720,7 +692,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 25. SELECT SearchPhrase FROM hits WHERE SearchPhrase <> '' ORDER BY EventTime LIMIT 10;
         case 25: {
             auto start = Clock::now();
 
@@ -735,14 +706,12 @@ static void RunQuery(int queryNum,
 
             auto filter = std::make_unique<Filter>(std::move(scan), std::move(pred));
 
-            // Ключи сортировки: сначала EventTime ASC, затем SearchPhrase ASC
             std::vector<TopK::SortKey> top_keys;
             top_keys.emplace_back(
-                std::make_unique<ColumnRef>(1, colType(event_time)), true); // EventTime
+                std::make_unique<ColumnRef>(1, colType(event_time)), true);
             top_keys.emplace_back(
-                std::make_unique<ColumnRef>(0, colType(search_phr)), true); // tie‑breaker
+                std::make_unique<ColumnRef>(0, colType(search_phr)), true);
 
-            // Какие столбцы выводить (SearchPhrase, EventTime)
             std::vector<std::unique_ptr<Expression> > out_exprs;
             out_exprs.push_back(std::make_unique<ColumnRef>(0, colType(search_phr)));
             out_exprs.push_back(std::make_unique<ColumnRef>(1, colType(event_time)));
@@ -752,7 +721,6 @@ static void RunQuery(int queryNum,
 
             auto res = topk->Next();
             if (res) {
-                // Переименовываем колонки, чтобы имена в CSV были осмысленными
                 res->schema.columns[0].name = "SearchPhrase";
                 res->schema.columns[1].name = "EventTime";
                 WriteBatchToCSV(*res, outputPath);
@@ -765,7 +733,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 26. SELECT SearchPhrase FROM hits WHERE SearchPhrase <> '' ORDER BY SearchPhrase LIMIT 10;
         case 26: {
             auto start = Clock::now();
 
@@ -787,7 +754,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 27. SELECT SearchPhrase FROM hits WHERE SearchPhrase <> '' ORDER BY EventTime, SearchPhrase LIMIT 10;
         case 27: {
             auto start = Clock::now();
 
@@ -813,7 +779,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 28. SELECT CounterID, AVG(STRLEN(URL)) AS l, COUNT(*) AS c FROM hits WHERE URL <> '' GROUP BY CounterID HAVING COUNT(*) > 100000 ORDER BY l DESC LIMIT 25;
         case 28: {
             auto start = Clock::now();
 
@@ -839,7 +804,6 @@ static void RunQuery(int queryNum,
             auto having = std::make_unique<Filter>(std::move(group), std::move(having_pred));
             std::vector<TopK::SortKey> top_keys;
             top_keys.emplace_back(std::make_unique<ColumnRef>(1, TypesId::int64), false);
-            // AVG возвращает int64? Нет, у нас AVG - строка. Но мы сортируем по l, которое в схеме string. Чтобы сортировка работала, нужно, чтобы Sort по ключу типа string сортировал лексикографически, но для чисел это неверно. Нужно, чтобы AVG давал колонку int64 или float. Пока оставим как есть, но это вызовет неправильную сортировку. В рамках исправления типов мы не можем изменить тип AVG. Однако для порядка можно конвертировать при сравнении. Т.к. это демонстрация, оставим.
             auto topk = std::make_unique<TopK>(std::move(having), std::move(top_keys), 25);
             auto res = topk->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -851,7 +815,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 29. SELECT REGEXP_REPLACE(Referer, '^https?://(?:www\.)?([^/]+)/.*$', '\1') AS k, AVG(STRLEN(Referer)) AS l, COUNT(*) AS c, MIN(Referer) FROM hits WHERE Referer <> '' GROUP BY k HAVING COUNT(*) > 100000 ORDER BY l DESC LIMIT 25;
         case 29: {
             auto start = Clock::now();
 
@@ -871,7 +834,7 @@ static void RunQuery(int queryNum,
             auto proj = std::make_unique<Projection>(std::move(filter), std::move(proj_exprs),
                                                      std::vector<std::string>{"k", "len", "Referer"});
             std::vector<std::unique_ptr<Expression> > keys;
-            keys.push_back(std::make_unique<ColumnRef>(0, TypesId::string)); // k – строка
+            keys.push_back(std::make_unique<ColumnRef>(0, TypesId::string));
             std::vector<GroupAggregate::Spec> agg_specs;
             agg_specs.emplace_back(GroupAggregate::AggOp::AVG, std::make_unique<ColumnRef>(1, TypesId::int64));
             agg_specs.emplace_back(GroupAggregate::AggOp::COUNT, nullptr);
@@ -882,7 +845,7 @@ static void RunQuery(int queryNum,
                                                             std::make_unique<Constant>(int64_t(100000)));
             auto having = std::make_unique<Filter>(std::move(group), std::move(having_pred));
             std::vector<TopK::SortKey> top_keys;
-            top_keys.emplace_back(std::make_unique<ColumnRef>(1, TypesId::int64), false); // по l
+            top_keys.emplace_back(std::make_unique<ColumnRef>(1, TypesId::int64), false);
             auto topk = std::make_unique<TopK>(std::move(having), std::move(top_keys), 25);
             auto res = topk->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -894,7 +857,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 30. SELECT SUM(ResolutionWidth), SUM(ResolutionWidth + 1), ..., SUM(ResolutionWidth + 89) FROM hits;
         case 30: {
             auto start = Clock::now();
 
@@ -918,7 +880,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 31. SELECT SearchEngineID, ClientIP, COUNT(*) AS c, SUM(IsRefresh), AVG(ResolutionWidth) FROM hits WHERE SearchPhrase <> '' GROUP BY SearchEngineID, ClientIP ORDER BY c DESC LIMIT 10;
         case 31: {
             auto start = Clock::now();
 
@@ -951,7 +912,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // 32. SELECT WatchID, ClientIP, COUNT(*) AS c, SUM(IsRefresh), AVG(ResolutionWidth) FROM hits WHERE SearchPhrase <> '' GROUP BY WatchID, ClientIP ORDER BY c DESC LIMIT 10;
         case 32: {
             auto start = Clock::now();
 
@@ -984,9 +944,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 33. SELECT WatchID, ClientIP, COUNT(*) AS c, SUM(IsRefresh), AVG(ResolutionWidth)
-        //     FROM hits GROUP BY WatchID, ClientIP ORDER BY c DESC LIMIT 10;
         case 33: {
             auto start = Clock::now();
 
@@ -1003,7 +960,7 @@ static void RunQuery(int queryNum,
             agg_specs.emplace_back(GroupAggregate::AggOp::AVG, std::make_unique<ColumnRef>(3, colType(res_width)));
             auto group = std::make_unique<GroupAggregate>(std::move(scan), std::move(keys), std::move(agg_specs));
             std::vector<TopK::SortKey> top_keys;
-            top_keys.emplace_back(std::make_unique<ColumnRef>(2, TypesId::int64), false); // COUNT(*)
+            top_keys.emplace_back(std::make_unique<ColumnRef>(2, TypesId::int64), false);
             auto topk = std::make_unique<TopK>(std::move(group), std::move(top_keys), 10);
             auto res = topk->Next();
             if (res) WriteBatchToCSV(*res, outputPath);
@@ -1015,8 +972,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 34. SELECT URL, COUNT(*) AS c FROM hits GROUP BY URL ORDER BY c DESC LIMIT 10;
         case 34: {
             auto start = Clock::now();
 
@@ -1039,20 +994,18 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 35. SELECT 1, URL, COUNT(*) AS c FROM hits GROUP BY 1, URL ORDER BY c DESC LIMIT 10;
         case 35: {
             auto start = Clock::now();
 
             auto scan = std::make_unique<TableScan>(reader, std::vector<size_t>{size_t(url)});
             std::vector<std::unique_ptr<Expression> > keys;
-            keys.push_back(std::make_unique<Constant>(int64_t(1))); // константа 1
-            keys.push_back(std::make_unique<ColumnRef>(0, colType(url))); // URL
+            keys.push_back(std::make_unique<Constant>(int64_t(1)));
+            keys.push_back(std::make_unique<ColumnRef>(0, colType(url)));
             std::vector<GroupAggregate::Spec> agg_specs;
             agg_specs.emplace_back(GroupAggregate::AggOp::COUNT, nullptr);
             auto group = std::make_unique<GroupAggregate>(std::move(scan), std::move(keys), std::move(agg_specs));
             std::vector<TopK::SortKey> top_keys;
-            top_keys.emplace_back(std::make_unique<ColumnRef>(2, TypesId::int64), false); // COUNT(*)
+            top_keys.emplace_back(std::make_unique<ColumnRef>(2, TypesId::int64), false);
             auto topk = std::make_unique<TopK>(std::move(group), std::move(top_keys), 10);
             auto res = topk->Next();
             if (res) {
@@ -1069,15 +1022,12 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 36. SELECT ClientIP, ClientIP - 1, ClientIP - 2, ClientIP - 3, COUNT(*) AS c
-        //     FROM hits GROUP BY ClientIP, ClientIP - 1, ClientIP - 2, ClientIP - 3 ORDER BY c DESC LIMIT 10;
         case 36: {
             auto start = Clock::now();
 
             auto scan = std::make_unique<TableScan>(reader, std::vector<size_t>{size_t(client_ip)});
             std::vector<std::unique_ptr<Expression> > keys;
-            keys.push_back(std::make_unique<ColumnRef>(0, colType(client_ip))); // ClientIP
+            keys.push_back(std::make_unique<ColumnRef>(0, colType(client_ip)));
             keys.push_back(std::make_unique<BinaryArithmetic>(ArithOp::MINUS,
                                                               std::make_unique<ColumnRef>(0, colType(client_ip)),
                                                               std::make_unique<Constant>(int64_t(1))));
@@ -1091,7 +1041,7 @@ static void RunQuery(int queryNum,
             agg_specs.emplace_back(GroupAggregate::AggOp::COUNT, nullptr);
             auto group = std::make_unique<GroupAggregate>(std::move(scan), std::move(keys), std::move(agg_specs));
             std::vector<TopK::SortKey> top_keys;
-            top_keys.emplace_back(std::make_unique<ColumnRef>(4, TypesId::int64), false); // COUNT(*)
+            top_keys.emplace_back(std::make_unique<ColumnRef>(4, TypesId::int64), false);
             auto topk = std::make_unique<TopK>(std::move(group), std::move(top_keys), 10);
             auto res = topk->Next();
             if (res) {
@@ -1110,11 +1060,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 37. SELECT URL, COUNT(*) AS PageViews FROM hits
-        //     WHERE CounterID = 62 AND EventDate >= '2013-07-01' AND EventDate <= '2013-07-31'
-        //     AND DontCountHits = 0 AND IsRefresh = 0 AND URL <> ''
-        //     GROUP BY URL ORDER BY PageViews DESC LIMIT 10;
         case 37: {
             auto start = Clock::now();
 
@@ -1173,11 +1118,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 38. SELECT Title, COUNT(*) AS PageViews FROM hits
-        //     WHERE CounterID = 62 AND EventDate >= '2013-07-01' AND EventDate <= '2013-07-31'
-        //     AND DontCountHits = 0 AND IsRefresh = 0 AND Title <> ''
-        //     GROUP BY Title ORDER BY PageViews DESC LIMIT 10;
         case 38: {
             auto start = Clock::now();
 
@@ -1236,11 +1176,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 39. SELECT URL, COUNT(*) AS PageViews FROM hits
-        //     WHERE CounterID = 62 AND EventDate >= '2013-07-01' AND EventDate <= '2013-07-31'
-        //     AND IsRefresh = 0 AND IsLink <> 0 AND IsDownload = 0
-        //     GROUP BY URL ORDER BY PageViews DESC LIMIT 10 OFFSET 1000;
         case 39: {
             auto start = Clock::now();
 
@@ -1284,7 +1219,7 @@ static void RunQuery(int queryNum,
             auto group = std::make_unique<GroupAggregate>(std::move(filter), std::move(keys), std::move(agg_specs));
 
             std::vector<Sort::SortKey> sort_keys;
-            sort_keys.push_back(Sort::SortKey{1, false}); // desc
+            sort_keys.push_back(Sort::SortKey{1, false});
             auto sort = std::make_unique<Sort>(std::move(group), std::move(sort_keys));
             auto offset_op = std::make_unique<Offset>(std::move(sort), 1000);
             auto limit = std::make_unique<Limit>(std::move(offset_op), 10);
@@ -1301,14 +1236,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 40. SELECT TraficSourceID, SearchEngineID, AdvEngineID,
-        //        CASE WHEN (SearchEngineID = 0 AND AdvEngineID = 0) THEN Referer ELSE '' END AS Src,
-        //        URL AS Dst, COUNT(*) AS PageViews
-        //     FROM hits WHERE CounterID = 62 AND EventDate >= '2013-07-01' AND EventDate <= '2013-07-31'
-        //     AND IsRefresh = 0
-        //     GROUP BY TraficSourceID, SearchEngineID, AdvEngineID, Src, Dst
-        //     ORDER BY PageViews DESC LIMIT 10 OFFSET 1000;
         case 40: {
             auto start = Clock::now();
 
@@ -1338,7 +1265,6 @@ static void RunQuery(int queryNum,
             and_ops.push_back(std::move(cond_refresh));
             auto filter = std::make_unique<Filter>(std::move(scan), std::make_unique<LogicalAnd>(std::move(and_ops)));
 
-            // Выражение CASE WHEN ... THEN Referer ELSE ''
             std::vector<std::unique_ptr<Expression> > case_ops;
             case_ops.push_back(std::make_unique<Comparison>(CmpOp::EQ,
                                                             std::make_unique<ColumnRef>(1, colType(search_eng)),
@@ -1350,23 +1276,23 @@ static void RunQuery(int queryNum,
 
             auto case_expr = std::make_unique<IfFunction>(
                 std::move(case_condition),
-                std::make_unique<ColumnRef>(3, colType(referer)), // THEN Referer
-                std::make_unique<Constant>(std::string("")) // ELSE ''
+                std::make_unique<ColumnRef>(3, colType(referer)),
+                std::make_unique<Constant>(std::string(""))
             );
 
             std::vector<std::unique_ptr<Expression> > keys;
             keys.push_back(std::make_unique<ColumnRef>(0, colType(trafic_source)));
             keys.push_back(std::make_unique<ColumnRef>(1, colType(search_eng)));
             keys.push_back(std::make_unique<ColumnRef>(2, colType(adv_engine)));
-            keys.push_back(std::move(case_expr)); // Src
-            keys.push_back(std::make_unique<ColumnRef>(4, colType(url))); // Dst
+            keys.push_back(std::move(case_expr));
+            keys.push_back(std::make_unique<ColumnRef>(4, colType(url)));
 
             std::vector<GroupAggregate::Spec> agg_specs;
             agg_specs.emplace_back(GroupAggregate::AggOp::COUNT, nullptr);
             auto group = std::make_unique<GroupAggregate>(std::move(filter), std::move(keys), std::move(agg_specs));
 
             std::vector<Sort::SortKey> sort_keys;
-            sort_keys.push_back(Sort::SortKey{5, false}); // desc (COUNT(*))
+            sort_keys.push_back(Sort::SortKey{5, false});
             auto sort = std::make_unique<Sort>(std::move(group), std::move(sort_keys));
             auto offset_op = std::make_unique<Offset>(std::move(sort), 0);
             auto limit = std::make_unique<Limit>(std::move(offset_op), 10);
@@ -1383,11 +1309,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 41. SELECT URLHash, EventDate, COUNT(*) AS PageViews
-        //     FROM hits WHERE CounterID = 62 AND EventDate >= '2013-07-01' AND EventDate <= '2013-07-31'
-        //     AND IsRefresh = 0 AND TraficSourceID IN (-1, 6) AND RefererHash = 3594120000172545465
-        //     GROUP BY URLHash, EventDate ORDER BY PageViews DESC LIMIT 10 OFFSET 100;
         case 41: {
             auto start = Clock::now();
 
@@ -1409,7 +1330,6 @@ static void RunQuery(int queryNum,
             auto cond_refresh = std::make_unique<Comparison>(CmpOp::EQ,
                                                              std::make_unique<ColumnRef>(3, colType(is_refresh)),
                                                              std::make_unique<Constant>(int64_t(0)));
-            // IN (-1, 6) моделируем через OR
             std::vector<std::unique_ptr<Expression> > in_ops;
             in_ops.push_back(std::make_unique<Comparison>(CmpOp::EQ,
                                                           std::make_unique<ColumnRef>(4, colType(trafic_source)),
@@ -1440,7 +1360,7 @@ static void RunQuery(int queryNum,
             auto group = std::make_unique<GroupAggregate>(std::move(filter), std::move(keys), std::move(agg_specs));
 
             std::vector<Sort::SortKey> sort_keys;
-            sort_keys.push_back(Sort::SortKey{2, false}); // desc (COUNT(*))
+            sort_keys.push_back(Sort::SortKey{2, false});
             auto sort = std::make_unique<Sort>(std::move(group), std::move(sort_keys));
             auto offset_op = std::make_unique<Offset>(std::move(sort), 0);
             auto limit = std::make_unique<Limit>(std::move(offset_op), 10);
@@ -1457,11 +1377,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 42. SELECT WindowClientWidth, WindowClientHeight, COUNT(*) AS PageViews
-        //     FROM hits WHERE CounterID = 62 AND EventDate >= '2013-07-01' AND EventDate <= '2013-07-31'
-        //     AND IsRefresh = 0 AND DontCountHits = 0 AND URLHash = 2868770270353813622
-        //     GROUP BY WindowClientWidth, WindowClientHeight ORDER BY PageViews DESC LIMIT 10 OFFSET 10000;
         case 42: {
             auto start = Clock::now();
 
@@ -1507,7 +1422,7 @@ static void RunQuery(int queryNum,
             auto group = std::make_unique<GroupAggregate>(std::move(filter), std::move(keys), std::move(agg_specs));
 
             std::vector<Sort::SortKey> sort_keys;
-            sort_keys.push_back(Sort::SortKey{2, false}); // desc
+            sort_keys.push_back(Sort::SortKey{2, false});
             auto sort = std::make_unique<Sort>(std::move(group), std::move(sort_keys));
             auto offset_op = std::make_unique<Offset>(std::move(sort), 0);
             auto limit = std::make_unique<Limit>(std::move(offset_op), 10);
@@ -1524,13 +1439,6 @@ static void RunQuery(int queryNum,
             break;
         }
 
-        // -------------------------------------------------------------------
-        // 43. SELECT DATE_TRUNC('minute', EventTime) AS M, COUNT(*) AS PageViews
-        //     FROM hits WHERE CounterID = 62 AND EventDate >= '2013-07-14' AND EventDate <= '2013-07-15'
-        //     AND IsRefresh = 0 AND DontCountHits = 0
-        //     GROUP BY DATE_TRUNC('minute', EventTime)
-        //     ORDER BY DATE_TRUNC('minute', EventTime) LIMIT 10 OFFSET 1000;
-        // -------------------------------------------------------------------
         case 43: {
             auto start = Clock::now();
 
@@ -1570,19 +1478,18 @@ static void RunQuery(int queryNum,
             auto proj = std::make_unique<Projection>(std::move(filter), std::move(proj_exprs), std::move(aliases));
 
             std::vector<std::unique_ptr<Expression> > keys;
-            keys.push_back(std::make_unique<ColumnRef>(0, TypesId::int64)); // M
+            keys.push_back(std::make_unique<ColumnRef>(0, TypesId::int64));
             std::vector<GroupAggregate::Spec> agg_specs;
             agg_specs.emplace_back(GroupAggregate::AggOp::COUNT, nullptr);
             auto group = std::make_unique<GroupAggregate>(std::move(proj), std::move(keys), std::move(agg_specs));
 
             std::vector<Sort::SortKey> sort_keys;
-            sort_keys.push_back(Sort::SortKey{0, true}); // asc
+            sort_keys.push_back(Sort::SortKey{0, true});
             auto sort = std::make_unique<Sort>(std::move(group), std::move(sort_keys));
             auto offset_op = std::make_unique<Offset>(std::move(sort), 0);
             auto limit = std::make_unique<Limit>(std::move(offset_op), 10);
             auto res = limit->Next();
             if (res) {
-                // Преобразуем колонку M из int64 в читаемую строку
                 auto col_m = res->columns[0];
                 auto new_col = Column::Create(TypesId::string);
                 for (size_t i = 0; i < res->numRows; ++i) {

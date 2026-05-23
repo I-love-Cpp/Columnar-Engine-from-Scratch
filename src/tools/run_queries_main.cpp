@@ -107,7 +107,7 @@ static void RunQuery(int queryNum,
     switch (queryNum) {
             // -----------------------------------------------------------------------
             // 1. SELECT COUNT(*) FROM hits;
-        case1: {
+        case 1: {
                 auto start = Clock::now();
 
                 auto scan = std::make_unique<TableScan>(reader, std::vector<size_t>{0}); // любая колонка
